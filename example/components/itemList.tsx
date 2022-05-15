@@ -1,71 +1,51 @@
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+
+import { useAppSelector, useAppDispatch } from '../redux/hooks'
+import { todoAdded, todoDeleted, todoReordered, todoToggled, todoEdited } from "../redux/todos";
 import { useState } from "react";
 import Delete from "./Delete";
 import Edit from "./Edit";
 import Add from "./Add";
 import Input from "./Input";
 
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+
 
 const ItemList = () => {
-  const [items, setItems] = useState([
-    [true, "Go to the Swimming Pool 🏊", "1"],
-    [false, "Watch a movie 🎬", "2"],
-    [false, "Check your agenda 📅", "3"],
-  ]);
+  const todos = useAppSelector(state => state.todos)
+  const dispatch = useAppDispatch()
+
   const [inputOpen, setInputOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState(null);
-  const [counter, setCounter] = useState(4);
 
-  function deleteItem(i) {
-    setItems((items) => {
-      const newItems = [...items];
-      newItems.splice(i, 1);
-      return newItems;
-    });
+  function deleteItem(id: string) {
+    dispatch(todoDeleted(id))
   }
-  function addItem(item) {
-    setItems((items) => {
-      const newItems = [...items];
-      newItems.push([false, item, String(counter)]);
-      setCounter((counter) => counter + 1);
-      return newItems;
-    });
+  function addItem(text : string) {
+    dispatch(todoAdded(text))
   }
-  function editItem(i, item) {
-    setItems((items) => {
-      const newItems = [...items];
-      newItems[i][1] = item;
-      return newItems;
-    });
+  function editItem(id : string, text: string) {
+    dispatch(todoEdited({id, text}))
   }
 
-  const handleCheck = (i) => () => {
-    setItems((items) => {
-      const newItems = [...items];
-      newItems[i][0] = !items[i][0];
-      return newItems;
-    });
+  const handleCheck = (id : string) => () => {
+    dispatch(todoToggled(id))
   };
 
-  function handleOnDragEnd(result) {
+  function handleOnDragEnd(result : any) {
     if (!result.destination) return;
-    const myitems = Array.from(items);
-    const [reorderedItem] = myitems.splice(result.source.index, 1);
-    myitems.splice(result.destination.index, 0, reorderedItem);
-
-    setItems(myitems);
+    dispatch(todoReordered({sourceIndex : result.source.index, destinationIndex: result.destination.index}))
   }
 
   return (
     <DragDropContext onDragEnd={handleOnDragEnd}>
-      <Droppable droppableId="characters">
+      <Droppable droppableId="todos">
         {(provided) => (
           <div
             className="flex flex-col gap-y-2 w-full sm:w-2/3 md:w-1/2 max-w-lg rounded-lg p-2 shadow-md bg-gray-100 text-left characters"
             {...provided.droppableProps}
             ref={provided.innerRef}
           >
-            {items.map(([checked, desc, id], index) => (
+            {todos.map(({id, text, completed}, index) => (
               <Draggable key={id} draggableId={id} index={index}>
                 {(provided) => (
                   <div
@@ -76,12 +56,12 @@ const ItemList = () => {
                   >
                     {index == itemToEdit ? (
                       <Input
-                        addReminder={(reminder) => {
+                        addReminder={(reminder : string) => {
                           setItemToEdit(null);
-                          editItem(index, reminder);
+                          editItem(id, reminder);
                         }}
                         defaultAction="Edit"
-                        initialValue={desc}
+                        initialValue={text}
                       />
                     ) : (
                       <div
@@ -92,17 +72,17 @@ const ItemList = () => {
                           <input
                             type="checkbox"
                             name="checked-demo"
-                            onChange={handleCheck(index)}
-                            checked={checked}
+                            onChange={handleCheck(id)}
+                            checked={completed}
                             className="form-tick appearance-none flex-initial bg-white bg-check h-6 w-24px min-w-6 border border-gray-300 rounded-md checked:bg-blue-500 checked:border-transparent focus:outline-none"
                           />
                         </label>
                         <span className="font-light truncate max-h-16">
-                          {desc}
+                          {text}
                         </span>
                         <span className="flex flex-row">
                           <Edit onClick={() => setItemToEdit(index)} />
-                          <Delete onClick={() => deleteItem(index)} />
+                          <Delete onClick={() => deleteItem(id)} />
                         </span>
                       </div>
                     )}
