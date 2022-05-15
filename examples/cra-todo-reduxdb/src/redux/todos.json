@@ -1,0 +1,5 @@
+[
+  { "id": "1", "text": "Go to the Swimming Pool 🏊" , "completed" : true},
+  { "id": "2", "text":  "Watch a movie 🎬" , "completed" : true},
+  { "id": "3", "text": "Check your agenda 📅" , "completed" : true}
+]
