@@ -10,7 +10,9 @@ type error = {message? : string}
 type withID<T> = T & {id : string}
 type DBstate<T> = {
   loading : loading,
-  error : error,
+  uploading : loading,
+  fetchError : error,
+  uploadError : error,
   db : Array<withID<T>>
 }
 
@@ -25,9 +27,22 @@ export function createDB<T>(dbname : string, filePath: string){
     }
   )
 
+  const uploadDB = createAsyncThunk(
+    `reduxdb/${dbname}/uploaddb`,
+    async () => {
+      await fetch(filePath, {method : "POST"})
+    }
+  )
+
   const {actions, reducer} = createSlice({
     name: `reduxdb/${dbname}`,
-    initialState : { loading : "idle", db : [], error: null} as DBstate<T>,
+    initialState : { 
+      loading : "idle", 
+      uploading: "idle", 
+      db : [], 
+      fetchError: null, 
+      uploadError : null
+    } as DBstate<T>,
     reducers: {
       insert(state, action : PayloadAction<T>) {
         state.db.push(castDraft({
@@ -64,7 +79,17 @@ export function createDB<T>(dbname : string, filePath: string){
         })
         .addCase(fetchDB.rejected, (state, action) => {
           state.loading = "idle"
-          state.error = action.error
+          state.fetchError = action.error
+        })
+        .addCase(uploadDB.fulfilled, (state) => {
+          state.uploading = "idle"
+        })
+        .addCase(uploadDB.pending, (state) => {
+          state.uploading = "pending"
+        })
+        .addCase(uploadDB.rejected, (state, action) => {
+          state.uploading = "idle";
+          state.uploadError = action.error
         })
     }
   })
