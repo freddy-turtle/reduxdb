@@ -2,7 +2,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 import { useAppSelector, useAppDispatch } from '../redux/hooks'
 import { actions } from '../redux/todos'
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Delete from "./Delete";
 import Edit from "./Edit";
 import Add from "./Add";
@@ -16,6 +16,10 @@ const ItemList = () => {
 
   const [inputOpen, setInputOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState(null);
+
+  useEffect(() => {
+    dispatch(actions.fetchDB())
+  }, [dispatch])
 
   function deleteItem(id: string) {
     dispatch(actions.delete(id))

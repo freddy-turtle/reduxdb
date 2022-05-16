@@ -1,4 +1,3 @@
-import todoJSON from './todos.json'
 import { createDB } from './reduxdb'
 
 type todoItem = {
@@ -6,4 +5,4 @@ type todoItem = {
   completed : boolean
 }
 
-export const {actions, reducer} = createDB<todoItem>('todos', Array.from(todoJSON))
+export const {actions, reducer} = createDB<todoItem>('todos', process.env.PUBLIC_URL + '/todos.json')
